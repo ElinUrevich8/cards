@@ -42,3 +42,40 @@ animal.purr()  # bug! animal is not a Cat
 class FourOfAKind(EvaluatedHand):
     cards ... 
     
+
+##
+##
+##
+
+class RoadwayDelivery:
+    def deliver(self, package):
+        # Order taxi
+
+class AirDelivery:
+    def deliver(self, package):
+        # Call ElAL 
+
+class SeaDelivery:
+    def deliver(self, package):
+        # Talk to port
+
+
+POST /deliver
+{ 
+    "package": "<serial_n8mbe>",
+    "weight_in_kg": 2.5,
+    "delivery_method": "air"
+}
+
+
+class DeliveryFactory:
+    @staticmethod
+    def get_delivery_method(delivery_method: str):
+        if delivery_method == "roadway":
+            return RoadwayDelivery()
+        elif delivery_method == "air":
+            return AirDelivery()
+        elif delivery_method == "sea":
+            return SeaDelivery()
+        else:
+            raise ValueError("Unknown delivery method")

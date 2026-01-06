@@ -1,5 +1,5 @@
-from pocker.card import Rank, Hand, Card, Suit
-from enum import Enum
+from card import Rank, Hand, Card, Suit
+from enum import IntEnum
 
 class HandStrengthEvaluation:
     def __init__(self, hand: Hand):
@@ -74,7 +74,7 @@ class HandStrengthEvaluation:
                     self.has_straight() or self.has_flush() or self.has_full_house() or
                     self.has_four_of_a_kind() or self.has_straight_flush() or self.has_royal_flush())    
 
-class HandStrength(Enum):
+class HandStrength(IntEnum):
     HIGH_CARD = 1
     PAIR = 2
     TWO_PAIR = 3
@@ -127,7 +127,7 @@ class EvaluatedHand:
         kickers = []
 
         if self.strength == HandStrength.HIGH_CARD or \
-           self.strength == HandStrength.FULL_HOUSE:
+            self.strength == HandStrength.FLUSH: 
             kickers = sorted((card.rank for card in self.hand), reverse=True)
         elif self.strength == HandStrength.PAIR:
             pair_rank = next(rank for rank, count in self.evaluator.bitmap.items() if count == 2)
@@ -137,15 +137,32 @@ class EvaluatedHand:
             pair_ranks = sorted((rank for rank, count in self.evaluator.bitmap.items() if count == 2), reverse=True)
             kickers.extend(pair_ranks)
             kickers.extend(sorted((card.rank for card in self.hand if card.rank not in pair_ranks), reverse=True))
-        elif self.strength == HandStrength.THREE_OF_A_KIND:
+        elif self.strength == HandStrength.THREE_OF_A_KIND: 
             three_rank = next(rank for rank, count in self.evaluator.bitmap.items() if count == 3)
             kickers.append(three_rank)
             kickers.extend(sorted((card.rank for card in self.hand if card.rank != three_rank), reverse=True))
+        elif self.strength == HandStrength.FULL_HOUSE:    
+            three_rank = next(rank for rank, count in self.evaluator.bitmap.items() if count == 3)
+            pair_rank = next(rank for rank, count in self.evaluator.bitmap.items() if count == 2)
+            kickers.append(three_rank)
+            kickers.append(pair_rank)
+            kickers.extend(sorted((card.rank for card in self.hand if card.rank != three_rank and card.rank != pair_rank), reverse=True))
         elif self.strength == HandStrength.STRAIGHT or \
-             self.strength == HandStrength.FLUSH or \
              self.strength == HandStrength.STRAIGHT_FLUSH:
+    
+            # Sort standard way first: [14, 5, 4, 3, 2]
             kickers = sorted((card.rank for card in self.hand), reverse=True)
+            
+            # Check for the Wheel (A, 5, 4, 3, 2)
+            # Assuming Rank.ACE is 14 and Rank.TWO is 2
+            if kickers == [14, 5, 4, 3, 2]:
+                # Move Ace to the end to treat it as '1'
+                # New order: [5, 4, 3, 2, 14(treated as 1)]
+                kickers = [5, 4, 3, 2, 1] # Or handle rank value logic    
         elif self.strength == HandStrength.FOUR_OF_A_KIND:
             four_rank = next(rank for rank, count in self.evaluator.bitmap.items() if count == 4)
             kickers.append(four_rank)
             kickers.extend(sorted((card.rank for card in self.hand if card.rank != four_rank), reverse=True))
+
+
+        return kickers    

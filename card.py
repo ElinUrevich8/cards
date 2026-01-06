@@ -1,5 +1,5 @@
-import random
-from enum import Enum
+import random, re
+from enum import Enum, IntEnum
 from typing import Iterator
 
 
@@ -9,16 +9,7 @@ class Suit(Enum):
     CLUBS = "clubs"
     SPADES = "spades"
 
-
-SUIT_ASCII = {
-    Suit.HEARTS: "♥",
-    Suit.DIAMONDS: "♦",
-    Suit.CLUBS: "♣",
-    Suit.SPADES: "♠",
-}
-
-
-class Rank(Enum):
+class Rank(IntEnum):
     ACE = 14
     KING = 13
     QUEEN = 12
@@ -34,20 +25,25 @@ class Rank(Enum):
     TWO = 2
 
 
+SUIT_MAP = {
+    'h': Suit.HEARTS,   'd': Suit.DIAMONDS,   'c': Suit.CLUBS,   's': Suit.SPADES,
+    '♥': Suit.HEARTS,   '♦': Suit.DIAMONDS,   '♣': Suit.CLUBS,   '♠': Suit.SPADES
+}
+
+# Maps for printing (Enum -> Output)
+SUIT_ASCII = {Suit.HEARTS: '♥', Suit.DIAMONDS: '♦', Suit.CLUBS: '♣', Suit.SPADES: '♠'}
+
 RANK_ASCII = {
-    Rank.ACE: "A",
-    Rank.KING: "K",
-    Rank.QUEEN: "Q",
-    Rank.JACK: "J",
-    Rank.TEN: "10",
-    Rank.NINE: "9",
-    Rank.EIGHT: "8",
-    Rank.SEVEN: "7",
-    Rank.SIX: "6",
-    Rank.FIVE: "5",
-    Rank.FOUR: "4",
-    Rank.THREE: "3",
-    Rank.TWO: "2",
+    Rank.ACE: 'A', Rank.KING: 'K', Rank.QUEEN: 'Q', Rank.JACK: 'J', Rank.TEN: '10',
+    Rank.NINE: '9', Rank.EIGHT: '8', Rank.SEVEN: '7', Rank.SIX: '6', 
+    Rank.FIVE: '5', Rank.FOUR: '4', Rank.THREE: '3', Rank.TWO: '2'
+}
+
+RANK_MAP = {
+    'A': Rank.ACE, 'K': Rank.KING, 'Q': Rank.QUEEN, 'J': Rank.JACK, 
+    'T': Rank.TEN, '10': Rank.TEN, # Handles the "10" case
+    '9': Rank.NINE, '8': Rank.EIGHT, '7': Rank.SEVEN, '6': Rank.SIX, 
+    '5': Rank.FIVE, '4': Rank.FOUR, '3': Rank.THREE, '2': Rank.TWO
 }
 
 
@@ -62,6 +58,24 @@ class Card:
           random.choice(list(Suit)),
           random.choice(list(Rank))
         )
+    @classmethod
+    def from_string(cls, hand_str: str) -> "Card":
+        # The Pattern:
+        # Part 1: (10|[2-9TJQKA]) -> Match "10" OR any single rank character
+        # Part 2: ([shdc♥♦♣♠])    -> Match any valid suit character
+        pattern = r"(10|[2-9TJQKA])([shdc♥♦♣♠])"
+        
+        # re.findall returns a list of tuple, e.g., [('A', 'h')]
+        matches = re.findall(pattern, hand_str)
+
+        if not matches:
+            raise ValueError(f"Invalid hand string: {hand_str}")
+
+        rank_str, suit_str = matches[0]
+        rank = RANK_MAP[rank_str]
+        suit = SUIT_MAP[suit_str]
+
+        return cls(suit, rank)
 
     def __str__(self):
         return f"{RANK_ASCII[self.rank]}{SUIT_ASCII[self.suit]}"
@@ -90,6 +104,10 @@ class Hand:
     def random(cls, size: int = 5) -> "Hand":
         return Hand([Card.random() for _ in range(size)])
 
+    @classmethod
+    def from_string(cls, hand_str: str) -> "Hand":
+        return Hand([Card.from_string(card_str) for card_str in hand_str.split()])
+
     def add_card(self, card: Card) -> None:
         self.cards.append(card)
 
@@ -104,7 +122,9 @@ class Hand:
             return "<Empty hand>"
         return ", ".join([str(card) for card in self.cards])
 
-
+    def beats(self, other_hand: "Hand") -> bool:
+        from comparehands import CompareHand 
+        return CompareHand().beats(self, other_hand)
 
 class Board:
     """A board is a collection of hands, each player has a board of typically 5 hands."""

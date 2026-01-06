@@ -1,6 +1,7 @@
-from pocker.card import Rank, Hand, Card, Suit
-from pocker.strength import HandStrengthEvaluation
+from card import Rank, Hand, Card, Suit
+from strength import HandStrengthEvaluation
 
+# TODO: Add more tests, use fromstring for better readability
 def test_high_card():
     """Test that a hand with no pairs is correctly identified."""
     eval = HandStrengthEvaluation(
