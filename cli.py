@@ -65,10 +65,8 @@ class Game:
     def play(self):
         """Main game logic - override in subclasses."""
         print("\nGame started!")
-        print("Choose a name for the first player: ")
-        name1 = self.get_user_input("Enter name: ")
-        print("Choose a name for the second player: ")
-        name2 = self.get_user_input("Enter name: ")
+        name1 = self.get_user_input("Choose a name for the first player: ")
+        name2 = self.get_user_input("Choose a name for the second player: ")
         player1 = Player(name1, self.deck)
         player2 = Player(name2, self.deck)
         self.players.append(player1)
