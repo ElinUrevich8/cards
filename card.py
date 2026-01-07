@@ -87,65 +87,6 @@ class Card:
         return f"Card(suit={self.suit.value}, rank={self.rank.value})"
 
 
-class Game:
-    pass
-
-
-class Player:
-    pass
-
-class Hand:
-    """A hand is a collection of cards."""
-
-    def __init__(self, cards: list[Card] = []):
-        self.cards = cards
-
-    @classmethod
-    def random(cls, size: int = 5) -> "Hand":
-        return Hand([Card.random() for _ in range(size)])
-
-    @classmethod
-    def from_string(cls, hand_str: str) -> "Hand":
-        return Hand([Card.from_string(card_str) for card_str in hand_str.split()])
-
-    def add_card(self, card: Card) -> None:
-        self.cards.append(card)
-
-    def __iter__(self) -> Iterator[Card]:
-        return iter(self.cards)
-
-    def __len__(self) -> int:
-        return len(self.cards)
-
-    def __str__(self):
-        if len(self) == 0:
-            return "<Empty hand>"
-        return ", ".join([str(card) for card in self.cards])
-
-    def beats(self, other_hand: "Hand") -> bool:
-        from comparehands import CompareHand 
-        return CompareHand().beats(self, other_hand)
-
-class Board:
-    """A board is a collection of hands, each player has a board of typically 5 hands."""
-    def __init__(self, hands: list[Hand]):
-        self.hands = hands
-
-    @classmethod
-    def empty(cls) -> "Board":
-        return Board([Hand() for _ in range(5)])
-
-    @classmethod
-    def random(cls, num_hands: int = 5) -> "Board":
-        return Board([Hand.random() for _ in range(num_hands)])
-
-
-    def __str__(self):
-        return "\n".join([str(hand) for hand in self.hands])
-
-    def add_card(self, card: Card, hand_index: int) -> None:
-        self.hands[hand_index].add
-
 class Deck:
     def __init__(self, shuffled: bool = True):
         self.cards = [Card(suit, rank) for suit in Suit for rank in Rank]
@@ -169,6 +110,71 @@ class Deck:
             line = ", ".join(card_strs[i : i + 13])
             lines.append(line)
         return ",\n".join(lines)
+
+class Hand:
+    """A hand is a collection of cards."""
+
+    def __init__(self, cards: list[Card] = None):
+        self.cards = cards
+
+    @classmethod
+    def random(cls, size: int = 5) -> "Hand":
+        return Hand([Card.random() for _ in range(size)])
+
+    @classmethod
+    def from_string(cls, hand_str: str) -> "Hand":
+        return Hand([Card.from_string(card_str) for card_str in hand_str.split()])
+
+    def add_card(self, card: Card) -> None:
+        self.cards.append(card)
+
+    def __iter__(self) -> Iterator[Card]:
+        return iter(self.cards)
+
+    def __len__(self) -> int:
+        return len(self.cards)
+
+    def __str__(self):
+        if len(self) == 0:
+            return "<Empty hand>"
+        return ", ".join([str(card) for card in self.cards])
+    
+    def __repr__(self):
+        return f"Hand(cards={self.cards})"
+
+    def beats(self, other_hand: "Hand") -> bool:
+        from comparehands import CompareHand 
+        return CompareHand().beats(self, other_hand)
+
+class Board:
+    """A board is a collection of hands, each player has a board of typically 5 hands."""
+    def __init__(self, deck: Deck):
+        self.hands = []
+        for _ in range(5):
+            cards = deck.draw_cards(1) # Draw cards for ONE hand
+            self.hands.append(Hand(cards)) # Create Hand object
+
+    @classmethod
+    def empty(cls) -> "Board":
+        return Board([Hand() for _ in range(5)])
+
+    @classmethod
+    def random(cls, num_hands: int = 5) -> "Board":
+        return Board([Hand.random() for _ in range(num_hands)])
+
+    def __str__(self):
+        # Create a nice indented list of hands:
+        #   Hand 1: A♠, 10♥
+        #   Hand 2: K♦, Q♣
+        lines = []
+        for i, hand in enumerate(self.hands, 1):
+            lines.append(f"  Hand {i}: {hand}")
+        return "\n".join(lines)
+    
+
+    #def add_card(self, card: Card, hand_index: int) -> None:
+    #    self.hands[hand_index].add
+
 
 if __name__ == "__main__":
     #hand = Hand.random()

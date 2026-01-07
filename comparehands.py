@@ -20,5 +20,4 @@ class CompareHand:
                 return True
             elif kicker1 < kicker2:
                 return False
-
         return False
