@@ -99,6 +99,12 @@ class Game:
             choice = self.get_user_input("Enter your choice: ")
             self.handle_menu_choice(choice)
 
+        while self.running and len(self.players) == 2:
+            self.display_boards()
+            choice = self.get_user_input("Enter your choice: ")
+            self.handle_menu_choice(choice)
+        
+
 def main():
     """Entry point for the game."""
     game = Game()
